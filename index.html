@@ -190,10 +190,10 @@
                     <div class="mensaje-carga" id="mensajeCarga">
                         📹 Cargando video...
                     </div>
-                    <!-- REEMPLAZA ESTE ID CON EL DE TU VIDEO DE GOOGLE DRIVE -->
+                    <!-- VIDEO CON EL ID CORRECTO -->
                     <video id="videoInvitacion" controls muted playsinline webkit-playsinline
                            oncanplay="document.getElementById('mensajeCarga').style.display='none'">
-                        <source src="https://drive.google.com/uc?export=download&id=TU_ID_DE_GOOGLE_DRIVE_AQUI" type="video/mp4">
+                        <source src="https://drive.google.com/uc?export=download&id=1DHylBVQNcnN3C2wOm3Pi6NgDwFSvkYJx" type="video/mp4">
                         Tu navegador no soporta el elemento de video.
                     </video>
                 </div>
@@ -211,16 +211,20 @@
         const mensajeCarga = document.getElementById('mensajeCarga');
         let abierto = false;
         
-        // Precargar el video
+        // Precargar el video inmediatamente
         video.load();
         
         video.addEventListener('error', function(e) {
             mensajeCarga.innerHTML = '❌ Error: Video no disponible<br>Intenta más tarde';
             mensajeCarga.style.background = 'rgba(200,0,0,0.8)';
+            console.error('Error del video:', e);
         });
         
         video.addEventListener('loadeddata', function() {
             mensajeCarga.innerHTML = '✅ Video listo<br>Toca el sobre para verlo';
+            setTimeout(() => {
+                mensajeCarga.style.display = 'none';
+            }, 2000);
         });
         
         function abrirSobre() {
@@ -229,7 +233,9 @@
                 abierto = true;
                 
                 setTimeout(() => {
-                    video.play().catch(e => {
+                    video.play().then(() => {
+                        console.log('Video reproduciéndose');
+                    }).catch(e => {
                         console.log('Autoplay bloqueado, mostrando controles');
                         video.controls = true;
                     });
@@ -239,6 +245,11 @@
         
         sobreExterior.addEventListener('click', abrirSobre);
         sobreExterior.addEventListener('touchend', abrirSobre);
+        
+        // Precargar cuando la página cargue
+        window.addEventListener('load', function() {
+            video.load();
+        });
     </script>
 </body>
 </html>
