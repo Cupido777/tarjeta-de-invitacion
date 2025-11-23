@@ -126,6 +126,7 @@
             transform: rotateX(180deg);
             backface-visibility: hidden;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 10px;
@@ -137,13 +138,27 @@
             border-radius: 6px;
             overflow: hidden;
             background: #000;
+            position: relative;
         }
         
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             display: block;
+        }
+        
+        .mensaje-carga {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 5;
         }
         
         .instrucciones {
@@ -161,52 +176,6 @@
             0%, 100% { opacity: 0.9; }
             50% { opacity: 0.6; }
         }
-        
-        @media (max-width: 360px) {
-            .container {
-                height: 65vh;
-            }
-            .sello {
-                width: 60px;
-                height: 60px;
-                font-size: 25px;
-            }
-            .instrucciones {
-                font-size: 14px;
-            }
-        }
-        
-        @media (min-width: 414px) and (max-width: 896px) {
-            .container {
-                height: 75vh;
-                max-height: 550px;
-            }
-        }
-        
-        @media (max-height: 500px) and (orientation: landscape) {
-            .container {
-                height: 85vh;
-                max-height: 300px;
-                width: 80%;
-            }
-            .instrucciones {
-                font-size: 14px;
-                margin-top: 10px;
-            }
-        }
-        
-        .sobre-exterior {
-            -webkit-user-select: none;
-            user-select: none;
-        }
-        
-        .sobre-exterior:active {
-            transform: scale(0.95);
-        }
-        
-        .sobre-exterior.abierto:active {
-            transform: rotateX(180deg) scale(0.95);
-        }
     </style>
 </head>
 <body>
@@ -218,9 +187,13 @@
             </div>
             <div class="contenido-interior">
                 <div class="video-container">
-                    <!-- RUTA CORREGIDA - usa el nombre correcto de tu video -->
-                    <video controls autoplay muted playsinline webkit-playsinline>
-                        <source src="mi-grado.mp4" type="video/mp4">
+                    <div class="mensaje-carga" id="mensajeCarga">
+                        📹 Cargando video...
+                    </div>
+                    <!-- REEMPLAZA ESTE ID CON EL DE TU VIDEO DE GOOGLE DRIVE -->
+                    <video id="videoInvitacion" controls muted playsinline webkit-playsinline
+                           oncanplay="document.getElementById('mensajeCarga').style.display='none'">
+                        <source src="https://drive.google.com/uc?export=download&id=TU_ID_DE_GOOGLE_DRIVE_AQUI" type="video/mp4">
                         Tu navegador no soporta el elemento de video.
                     </video>
                 </div>
@@ -234,7 +207,21 @@
 
     <script>
         const sobreExterior = document.getElementById('sobreExterior');
+        const video = document.getElementById('videoInvitacion');
+        const mensajeCarga = document.getElementById('mensajeCarga');
         let abierto = false;
+        
+        // Precargar el video
+        video.load();
+        
+        video.addEventListener('error', function(e) {
+            mensajeCarga.innerHTML = '❌ Error: Video no disponible<br>Intenta más tarde';
+            mensajeCarga.style.background = 'rgba(200,0,0,0.8)';
+        });
+        
+        video.addEventListener('loadeddata', function() {
+            mensajeCarga.innerHTML = '✅ Video listo<br>Toca el sobre para verlo';
+        });
         
         function abrirSobre() {
             if (!abierto) {
@@ -242,36 +229,16 @@
                 abierto = true;
                 
                 setTimeout(() => {
-                    const video = document.querySelector('video');
-                    if (video) {
-                        video.play().catch(e => {
-                            console.log('Auto-play bloqueado');
-                        });
-                    }
-                }, 600);
+                    video.play().catch(e => {
+                        console.log('Autoplay bloqueado, mostrando controles');
+                        video.controls = true;
+                    });
+                }, 800);
             }
         }
         
         sobreExterior.addEventListener('click', abrirSobre);
         sobreExterior.addEventListener('touchend', abrirSobre);
-        
-        document.addEventListener('touchstart', function(e) {
-            if (e.touches.length > 1) e.preventDefault();
-        }, { passive: false });
-        
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-        
-        let lastTap = 0;
-        document.addEventListener('touchend', function(e) {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            if (tapLength < 500 && tapLength > 0) {
-                e.preventDefault();
-            }
-            lastTap = currentTime;
-        });
     </script>
 </body>
 </html>
